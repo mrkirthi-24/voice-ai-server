@@ -50,7 +50,7 @@ from database import (
 # Import trackers for broadcasting operations to frontend
 from db_tracker import set_transport as set_db_tracker_transport
 from function_tracker import set_transport as set_function_tracker_transport, track_function_call
-from service.custom_flow_manager import CustomFlowManager
+from custom_flow_manager import CustomFlowManager
 
 load_dotenv(override=True)
 
@@ -479,16 +479,16 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
             endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
         )
 
-        # tavus = TavusVideoService(
-        #     api_key=os.getenv("TAVUS_API_KEY"),
-        #     replica_id=os.getenv("TAVUS_REPLICA_ID"),
-        #     session=session,
-        # )
-
-        simli_ai = SimliVideoService(
-            api_key=os.getenv("SIMLI_API_KEY"),
-            face_id="cace3ef7-a4c4-425d-a8cf-a5358eb0c427",
+        tavus = TavusVideoService(
+            api_key=os.getenv("TAVUS_API_KEY"),
+            replica_id=os.getenv("TAVUS_REPLICA_ID"),
+            session=session,
         )
+
+        # simli_ai = SimliVideoService(
+        #     api_key=os.getenv("SIMLI_API_KEY"),
+        #     face_id="cace3ef7-a4c4-425d-a8cf-a5358eb0c427",
+        # )
 
         context = LLMContext([])
         context_aggregator_pair = LLMContextAggregatorPair(
@@ -510,7 +510,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
                 user_aggregator,
                 llm,
                 tts,
-                simli_ai,
+                tavus,
                 transport.output(),
                 assistant_aggregator,
             ]
