@@ -50,6 +50,7 @@ from database import (
 # Import trackers for broadcasting operations to frontend
 from db_tracker import set_transport as set_db_tracker_transport
 from function_tracker import set_transport as set_function_tracker_transport, track_function_call
+from service.custom_flow_manager import CustomFlowManager
 
 load_dotenv(override=True)
 
@@ -529,7 +530,8 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
 
         set_db_tracker_transport(task)
         set_function_tracker_transport(task)
-        flow_manager = FlowManager(
+        
+        flow_manager = CustomFlowManager(
             task=task,
             llm=llm,
             transport=transport,
