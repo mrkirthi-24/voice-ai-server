@@ -46,8 +46,6 @@ from database import (
     get_user_appointments_from_database,
     update_appointment_in_database,
 )
-
-# Import trackers for broadcasting operations to frontend
 from db_tracker import set_transport as set_db_tracker_transport
 from function_tracker import set_transport as set_function_tracker_transport, track_function_call
 from custom_flow_manager import CustomFlowManager
@@ -252,6 +250,7 @@ async def handle_identity_verification_internal(flow_manager: FlowManager, phone
     flow_manager.state["is_new_user"] = result["is_new"]
     flow_manager.state["phone_number"] = result["phone_number"]
     flow_manager.state["date"] = datetime.now().strftime("%Y-%m-%d")
+    flow_manager.state["date_string"] = datetime.now().strftime('%d %B %Y')
     flow_manager.state["available_slots"] = ['11:00', '15:00', '16:00', '17:00']    
     return None, create_user_verified_node(flow_manager)
 
@@ -370,7 +369,7 @@ def create_initial_node() -> NodeConfig:
         task_messages=[
             {
                 "role": "system",
-                "content": """Introduce yourself and greet the user. 
+                "content": """Introduce yourself as Angel and greet the user. 
                 Ask the user for name and phone number for identity verification. 
                 If the user provides a phone number that is not 10 digits, ask again for the phone number.
                 Repeat the name and phone number to the user before proceeding with the conversation.
@@ -388,7 +387,7 @@ def create_user_verified_node(flow_manager: FlowManager) -> NodeConfig:
             {
                 "role": "system",
                 "content": f"""Welcome {flow_manager.state.get('name', 'there')}. Tell the user that {flow_manager.state.get('available_slots', [])} are available 
-                for {flow_manager.state.get('date', 'today')}. Ask the user to select a slot to book the appointment. Confirm the slot before proceeding with the conversation.""",
+                for {flow_manager.state.get('date_string', 'today')}. Ask the user to select a slot to book the appointment. Confirm the slot before proceeding with the conversation.""",
             }
         ],
         functions=[handle_booking_appointment, handle_not_interested],
@@ -410,7 +409,7 @@ def create_rescheduled_appointment_node(flow_manager: FlowManager) -> NodeConfig
 
 def create_confirmation_node(flow_manager: FlowManager) -> NodeConfig:
     """Create the node for confirmation."""
-    date = flow_manager.state.get("date", "the selected date")
+    date = flow_manager.state.get("date_string", "the selected date")
     slot = flow_manager.state.get("slot_booked", "the selected time")
     
     return NodeConfig(
@@ -431,7 +430,7 @@ def create_update_appointment_node(flow_manager: FlowManager) -> NodeConfig:
     """Create the node for update appointment."""
     available_slots = flow_manager.state.get("available_slots", [])
     slots_text = ", ".join(available_slots) if available_slots else "available slots"
-    date = flow_manager.state.get("date", "today")
+    date = flow_manager.state.get("date_string", "today")
     
     return NodeConfig(
         name="update_appointment",
@@ -511,6 +510,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
                 llm,
                 tts,
                 tavus,
+                # simli_ai,
                 transport.output(),
                 assistant_aggregator,
             ]
